@@ -57,6 +57,22 @@ private struct CLTaskIndexedOutputView: View {
 
     @AppStorage(CLDefaults.settingsAppearanceKey) var appearance: Appearance = .dark
 
+    // Process the text and convert it into an AttributedString that supports clickable links.
+    private var attributedContent: AttributedString {
+        let content = output.output.content
+        var attributedString = AttributedString(content)
+
+        // Automatic link detection (macOS 12.0+)
+        // It automatically recognizes http, https, and some email formats.
+        if let range = attributedString.range(of: content) {
+            attributedString[range].inlinePresentationIntent = .hyperlink
+            // Use the system's data detector to automatically highlight URLs.
+            try? attributedString.setAttributes(AttributeContainer.dataDetectorTypes(.link))
+        }
+
+        return attributedString
+    }
+
     private func backgroundColor(for appearance: Appearance) -> Color {
         switch (appearance) {
         case .dark:
@@ -90,10 +106,13 @@ private struct CLTaskIndexedOutputView: View {
     var body: some View {
         HStack {
             if #available(macOS 12.0, *) {
-                Text(output.output.content)
+                // Use AttributedString for rendering
+                Text(attributedContent)
                     .textSelection(.enabled)
                     .font(.system(size: 13, weight: .regular, design: .monospaced))
                     .foregroundColor(foregroundColor(for: appearance))
+                    // Sets the link color; the default is usually blue.
+                    .tint(.blue)
             } else {
                 Text(output.output.content)
                     .font(.system(size: 13, weight: .regular, design: .monospaced))
@@ -143,7 +162,7 @@ struct CLConsoleView: View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack {
+                    LazyVStack(spacing: 0) {
                         ForEach(outputsWithIndex(outputs: viewModel.projectOutputs.filter { t in
                             if t.projectID == store.currentProjectID {
                                 if let taskID = taskID {
