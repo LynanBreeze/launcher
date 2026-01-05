@@ -111,7 +111,7 @@ private struct CLTaskIndexedOutputView: View {
                     .textSelection(.enabled)
                     .font(.system(size: 13, weight: .regular, design: .monospaced))
                     .foregroundColor(foregroundColor(for: appearance))
-                    // Sets the link color; the default is usually blue.
+                    // Sets the link color; the default is usually blue
                     .tint(.blue)
             } else {
                 Text(output.output.content)
